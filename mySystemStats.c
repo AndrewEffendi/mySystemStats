@@ -11,6 +11,18 @@
 #include <utmp.h>
 #include <unistd.h>
 
+typedef struct Memory {
+    double usedPhysical;
+    double totalPhysical;
+    double usedVirtual;
+    double totalVirtual;
+}Memory;
+
+typedef struct CPU {
+    double used;
+    double total;
+}CPU;
+
 void substr(char *str, char *subStr , int start, int len){
     strncpy(subStr, &str[start], len);
     subStr[len] = '\0';
@@ -38,7 +50,7 @@ int ceiling(double number){
 * memory
 *****************/
 // print memory usage of current program (mySystemStats.c)
-void printMemoryUsage(){
+void printMemoryInfo(){
     FILE *file = fopen("/proc/self/status", "r");
     if(file == NULL){
         perror("could not open /proc/self/status");
@@ -86,10 +98,10 @@ double getUsedVMemory(struct sysinfo sysinfo){
 }
 
 //helper funtion to print memory graphics
-void printMemoryGraphics(double currentVMemory, double *previousVMemory){
+void printMemoryGraphics(double currentVMemory, double previousVMemory){
     double difference = 0;
-    if(*previousVMemory != -1){
-        difference = currentVMemory - *previousVMemory;
+    if(previousVMemory != -1){
+        difference = currentVMemory - previousVMemory;
     }
     int barUnits = roundNum(difference * 100);
     printf("   |");
@@ -103,15 +115,26 @@ void printMemoryGraphics(double currentVMemory, double *previousVMemory){
     printf(" %.2f (%.2f)",difference,currentVMemory);
 }
 
-// print used physical memory, total physical memory, used virtual memory, and total virtual memory
-void printMemoryInfo(int graphics,double *previousUsedVMemory){
+Memory getMemoryUsage(){
     struct sysinfo memoryInfo;
     sysinfo (&memoryInfo);
-    printf (" %.2f GB / %.2f GB  --  %.2f GB / %.2f GB", getUsedPMemory(memoryInfo),getTotalPMemory(memoryInfo),getUsedVMemory(memoryInfo),getTotalVMemory(memoryInfo));
-    if(graphics == 1) printMemoryGraphics(getUsedVMemory(memoryInfo),previousUsedVMemory);
-    printf ("\n");
-    *previousUsedVMemory = getUsedVMemory(memoryInfo);
-    
+    Memory memory;
+    memory.usedPhysical = getUsedPMemory(memoryInfo);
+    memory.totalPhysical = getTotalPMemory(memoryInfo);
+    memory.usedVirtual = getUsedVMemory(memoryInfo);
+    memory.totalVirtual = getTotalVMemory(memoryInfo);
+    return memory;
+}
+
+// print used physical memory, total physical memory, used virtual memory, and total virtual memory
+void printMemoryUsage(Memory *memoryArray, int index, int samples, int graphics){
+    for(int i=0;i<=index;i++){
+        printf (" %.2f GB / %.2f GB  --  %.2f GB / %.2f GB", memoryArray[i].usedPhysical,memoryArray[i].totalPhysical,memoryArray[i].usedVirtual,memoryArray[i].totalVirtual);
+        if(graphics == 1 && i!=0) printMemoryGraphics(memoryArray[i].usedVirtual,memoryArray[i-1].usedVirtual);
+        if(graphics == 1 && i==0) printMemoryGraphics(memoryArray[i].usedVirtual,-1);
+        printf ("\n");
+    }
+    for(int i=index+1;i<samples;i++) printf("\n");
 }
 
 /*****************
@@ -140,41 +163,35 @@ int printUsers(){
 * CPU
 *****************/
 // get the cpu usage and store it in an cpuUsageArray
-void getCPUUsage(double *cpuUsageArray, int i, long long *prevTotalUser, long long *prevTotalNice, long long *prevTotalSystem, long long *prevTotalIdle, long long *prevTotalIoWait, long long *prevTotalIrq, long long *prevTotalSoftIrq){
-    double percent;
-    double totalUser, totalNice, totalSystem, totalIdle, totalIoWait, totalIrq, totalSoftIrq, total;
-    double totalUsed;
+CPU getCPUValues(){
+    CPU cpuValue;
+    double user, nice, system, idle, ioWait, irq, softIrq;
     FILE *file = fopen("/proc/stat", "r");
     if(file == NULL){
         perror("Could not open /proc/stat\n"); 
         exit(1);
     }
-    fscanf(file, "cpu %lf %lf %lf %lf %lf %lf %lf", &totalUser, &totalNice, &totalSystem, &totalIdle, &totalIoWait, &totalIrq, &totalSoftIrq); // read the first line
+    fscanf(file, "cpu %lf %lf %lf %lf %lf %lf %lf", &user, &nice, &system, &idle, &ioWait, &irq, &softIrq); // read the first line
     if(fclose(file)!= 0){
         perror("Could not close /proc/stat\n");
         exit(1);
     }
-    totalUsed = (totalUser + totalNice + totalSystem + totalIrq + totalSoftIrq) - (*prevTotalUser + *prevTotalNice + *prevTotalSystem + *prevTotalIrq + *prevTotalSoftIrq) ;
-    total = totalUsed + totalIdle + totalIoWait - (*prevTotalIdle + *prevTotalIoWait);
-    percent = (totalUsed / total) * 100;
-    if(i==0) percent = 0; //base sample have no change
+    cpuValue.used = user + nice + system + ioWait + irq + softIrq;
+    cpuValue.total = user + nice + system + idle + ioWait + irq + softIrq;
+    return cpuValue;
+}
 
-    *prevTotalUser = totalUser;
-    *prevTotalNice = totalNice;
-    *prevTotalSystem = totalSystem;
-    *prevTotalIdle = totalIdle;
-    *prevTotalIoWait = totalIoWait;
-    *prevTotalIrq = totalIrq;
-    *prevTotalSoftIrq = totalSoftIrq;
-
-    cpuUsageArray[i] = percent;
+double getCPUUsage(CPU *t1){
+    CPU t2 = getCPUValues();
+    return (t2.used - t1->used) / (t2.total - t1->total);
 }
 
 // print all values in cpuUsageArray except the first one (base sample) (used for non-sequential output)
-void printCPUUsage(double *cpuUsageArray,int index,int graphics){
+void printCPUUsage(double *cpuUsageArray,int index, int samples, int graphics){
     printf(" total cpu use = %.2f%%\n",cpuUsageArray[index]);
     if (graphics == 1){
-        for(int i=1;i<index+1;i++){
+        //for(int i=0;i<index-1;i++)printf("\n"); //print upper gap
+        for(int i=0;i<=index;i++){
             printf("         |");
             if(cpuUsageArray[i]>=0){
                 for(int j=0;j<ceiling(cpuUsageArray[i]);j++) printf("#");
@@ -184,28 +201,8 @@ void printCPUUsage(double *cpuUsageArray,int index,int graphics){
                 printf("@ %.2f%%\n",cpuUsageArray[i]);
             }
         }
-        
-    }  
-}
-
-// print only the last value in cpuUsageArray (used for sequential flag)
-void printLastCPUUsage(double *cpuUsageArray,int index, int samples,int graphics){
-    printf(" total cpu use = %.2f%%\n",cpuUsageArray[index]);
-    if (graphics == 1){
-        //print upper gap
-        for(int i=0;i<index-1;i++)printf("\n"); 
-        // print graphics
-        printf("         |");
-        if(cpuUsageArray[index]>=0){
-            for(int i=0;i<ceiling(cpuUsageArray[index]);i++) printf("#");
-            printf("o %.2f%%\n",cpuUsageArray[index]);
-        }else {
-            for(int i=0;i>ceiling(cpuUsageArray[index]);i--) printf(":");
-            printf("@ %.2f%%\n",cpuUsageArray[index]);
-        }
-        // print lower gap
-        for(int i=0;i<samples-index;i++) printf("\n");
-    }
+    } 
+    for(int i=index+1;i<samples;i++) printf("\n");
 }
 
 // print the number of cores
@@ -329,57 +326,37 @@ int main(int argc, char **argv){
     }
     free(sub);
 
-    double previousUsedVMemory = -1;
-    double *cpuUsageArray= malloc ((samples+1) * sizeof(double)) ;
-    long long prevTotalUser,prevTotalUserLow,prevTotalSys,prevTotalIdle,prevTotalIoWait,prevTotalIrq,prevTotalSoftIrq;
-    // print output
-    if(type==0 || type==1) {
-        //take base sample for cpu array
-        getCPUUsage(cpuUsageArray,0,&prevTotalUser,&prevTotalUserLow,&prevTotalSys,&prevTotalIdle,&prevTotalIoWait,&prevTotalIrq,&prevTotalSoftIrq);
-        usleep(100000); //sleep for 0.1 seconds
-    }
+    double CPU_Array[samples] ;
+    Memory Memory_Array[samples] ;
+    CPU t1;
+
     if (sequentialFlag == 0){
         printf("\033[1J"); //delete all above
         printf("\033[H"); //go home
         printf("Nbr of samples: %d -- every %d sec\n", samples, tdelay);
-        int cpuLine = 1;
-        if(graphicsFlag == 1) cpuLine += samples;
-
-        // template
-        if(type==0 || type==1) {
-            printMemoryUsage();
-            printMemoryHeader();
-            for (int i = 0;i<samples;i++)printf("\n");
-            printCPUInfo();
-            for (int i = 0;i<cpuLine;i++)printf("\n");
-        }
-
+        // get cpu usage
+        t1 = getCPUValues();
         // refresh screen
         for(int i=0;i<samples;i++){
-            if(type==0 || type==1){
-                // memory
-                printf("\033[s"); //save
-                printf("\033[%dA", cpuLine + samples + 5); //up
-                printMemoryUsage();
-                printf("\033[%dB", 2 + i); //down
-                printMemoryInfo(graphicsFlag,&previousUsedVMemory);
-                printf("\033[u"); // restore
-                //cpu
-                printf("\033[s"); //save
-                printf("\033[%dA", cpuLine); //up
-                getCPUUsage(cpuUsageArray,i+1,&prevTotalUser,&prevTotalUserLow,&prevTotalSys,&prevTotalIdle,&prevTotalIoWait,&prevTotalIrq,&prevTotalSoftIrq);
-                printCPUUsage(cpuUsageArray,i+1,graphicsFlag);
-                printf("\033[u"); // restore
+            sleep(tdelay);
+            printf("\033[1J"); //delete all above
+            printf("\033[H"); //go home
+            printf("Nbr of samples: %d -- every %d sec\n", samples, tdelay);
+            if(type==0 || type==1) {
+                //memory
+                printMemoryInfo();
+                printMemoryHeader();
+                Memory_Array[i] = getMemoryUsage();
+                printMemoryUsage(Memory_Array, i, samples, graphicsFlag);
             }
             if(type==0 || type==2){
-                //users
-                printf("\033[s"); //save
-                printf("\033[0J"); //delete all below
-                printf("\033[u"); // restore
                 printUsers();
-                if(i<samples-1)printf("\033[u"); // don't restore last loop   
             }
-            if(i!=samples-1) sleep(tdelay); // don't sleep after last sample
+            if(type==0 || type==1) {
+                printCPUInfo();
+                CPU_Array[i] = getCPUUsage(&t1);
+                printCPUUsage(CPU_Array, i, samples, graphicsFlag);
+            }
         }    
     }
     if (sequentialFlag == 1){
@@ -388,22 +365,21 @@ int main(int argc, char **argv){
             printf(">>> itertion %d\n", i+1);
             if(type==0 || type==1) {
                 //memory
-                printMemoryUsage();
+                printMemoryInfo();
                 printMemoryHeader();
-                for(int j=0;j<i;j++)printf("\n");
-                printMemoryInfo(graphicsFlag,&previousUsedVMemory);
-                for(int j=0;j<samples-i-1;j++)printf("\n");
-                //cpu
-                getCPUUsage(cpuUsageArray,i+1,&prevTotalUser,&prevTotalUserLow,&prevTotalSys,&prevTotalIdle,&prevTotalIoWait,&prevTotalIrq,&prevTotalSoftIrq);
-                printCPUInfo();
-                printLastCPUUsage(cpuUsageArray,i+1,samples,graphicsFlag);
+                Memory_Array[i] = getMemoryUsage();
+                printMemoryUsage(Memory_Array, i, samples, graphicsFlag);
             }
             if(type==0 || type==2){
                 printUsers();
             }
+            if(type==0 || type==1) {
+                printCPUInfo();
+                CPU_Array[i] = getCPUUsage(&t1);
+                printCPUUsage(CPU_Array, i, samples, graphicsFlag);
+            }
             if(i!=samples-1) sleep(tdelay); // don't sleep after last sample
         }    
     }
-    free(cpuUsageArray);
     printSystemInfo(); 
 }
