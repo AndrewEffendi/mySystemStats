@@ -50,7 +50,8 @@ int ceiling(double number){
 * memory
 *****************/
 // print memory usage of current program (mySystemStats.c)
-void printMemoryInfo(){
+int getCurrentProgramMemoryUsage(){
+    int memUsage = 0;
     FILE *file = fopen("/proc/self/status", "r");
     if(file == NULL){
         perror("could not open /proc/self/status");
@@ -62,6 +63,7 @@ void printMemoryInfo(){
 		if(strncmp(temp, "VmSize:", 7) == 0) {
             substr(temp, memoryUsage, 12, (int)strlen(temp)-16);
             printf(" memory usage: %s kilobytes\n",memoryUsage);
+            memUsage = atoi(memoryUsage);
             free(memoryUsage);
             break;
 		}
@@ -70,9 +72,11 @@ void printMemoryInfo(){
         perror("could not close /proc/self/status");
         exit(1);
     }
+    return memUsage;
 }
 
-void printMemoryHeader(){
+void printMemoryHeader(int memoryUsage){
+    printf(" memory usage: %d kilobytes\n",memoryUsage);
     printf("---------------------------------------\n");
     printf("### Memory ### (Phys.Used/Tot -- Virtual Used/Tot)\n");
 }
@@ -205,9 +209,9 @@ void printCPUUsage(double *cpuUsageArray,int index, int samples, int graphics){
     for(int i=index+1;i<samples;i++) printf("\n");
 }
 
-// print the number of cores
-void printCPUInfo(){
-    printf("---------------------------------------\n");
+// get the number of cores
+int getCoreCount(){
+    int coreCount = 0;
     FILE *file = fopen("/proc/cpuinfo", "r");
     if(file == NULL){
         perror("Could not open /proc/cpuinfo\n"); 
@@ -218,7 +222,7 @@ void printCPUInfo(){
     while(fgets(temp, 512, file) != NULL) {
 		if((strstr(temp, "cpu cores")) != NULL) {
             substr(temp, cpuCoreCount, 12, (int)strlen(temp)-12);
-            printf("Number of cores: %s",cpuCoreCount);
+            coreCount = atoi(cpuCoreCount);
             free(cpuCoreCount);
             break;
 		}
@@ -227,6 +231,13 @@ void printCPUInfo(){
         perror("Could not close /proc/cpuinfo\n");
         exit(1);
     }
+    return coreCount;
+}
+
+// print the number of cores
+void printCoreCount(int coreCount){
+    printf("---------------------------------------\n");
+    printf("Number of cores: %d\n",coreCount);
 }
 
 /*****************
@@ -320,7 +331,7 @@ int main(int argc, char **argv){
             sdFlag = 0;
         }
         // check graphics
-        if (strcmp(argv[i], "--graphics") == 0 || strcmp(argv[i], "--g") == 0){
+        if (strcmp(argv[i], "--graphics") == 0){
             graphicsFlag = 1;
         }
     }
@@ -329,23 +340,26 @@ int main(int argc, char **argv){
     double CPU_Array[samples] ;
     Memory Memory_Array[samples] ;
     CPU t1;
+    int coreCount = 0;
+    int currentProgMemUsage = 0;
+    if(type==0 || type==1) {
+        coreCount = getCoreCount();
+        currentProgMemUsage = getCurrentProgramMemoryUsage();
+    }
 
     if (sequentialFlag == 0){
         printf("\033[1J"); //delete all above
         printf("\033[H"); //go home
         printf("Nbr of samples: %d -- every %d sec\n", samples, tdelay);
-        // get cpu usage
-        t1 = getCPUValues();
-        // refresh screen
         for(int i=0;i<samples;i++){
+            if(type==0 || type==1) 
+                t1 = getCPUValues();
             sleep(tdelay);
             printf("\033[1J"); //delete all above
             printf("\033[H"); //go home
             printf("Nbr of samples: %d -- every %d sec\n", samples, tdelay);
             if(type==0 || type==1) {
-                //memory
-                printMemoryInfo();
-                printMemoryHeader();
+                printMemoryHeader(currentProgMemUsage);
                 Memory_Array[i] = getMemoryUsage();
                 printMemoryUsage(Memory_Array, i, samples, graphicsFlag);
             }
@@ -353,7 +367,7 @@ int main(int argc, char **argv){
                 printUsers();
             }
             if(type==0 || type==1) {
-                printCPUInfo();
+                printCoreCount(coreCount);
                 CPU_Array[i] = getCPUUsage(&t1);
                 printCPUUsage(CPU_Array, i, samples, graphicsFlag);
             }
@@ -361,12 +375,14 @@ int main(int argc, char **argv){
     }
     if (sequentialFlag == 1){
         printf("Nbr of samples: %d -- every %d sec\n", samples, tdelay);
-        for(int i=0;i<samples;i++){
+        for(int i=0;i<samples;i++){\
+            if(type==0 || type==1) 
+                t1 = getCPUValues();
+            sleep(tdelay);
             printf(">>> itertion %d\n", i+1);
             if(type==0 || type==1) {
                 //memory
-                printMemoryInfo();
-                printMemoryHeader();
+                printMemoryHeader(currentProgMemUsage);
                 Memory_Array[i] = getMemoryUsage();
                 printMemoryUsage(Memory_Array, i, samples, graphicsFlag);
             }
@@ -374,11 +390,10 @@ int main(int argc, char **argv){
                 printUsers();
             }
             if(type==0 || type==1) {
-                printCPUInfo();
+                printCoreCount(coreCount);
                 CPU_Array[i] = getCPUUsage(&t1);
                 printCPUUsage(CPU_Array, i, samples, graphicsFlag);
             }
-            if(i!=samples-1) sleep(tdelay); // don't sleep after last sample
         }    
     }
     printSystemInfo(); 
