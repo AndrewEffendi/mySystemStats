@@ -347,14 +347,17 @@ int main(int argc, char **argv){
     double cpuUsage = 0;
     Memory memoryUsage;
     // fd for pipe
-    int fd[2][2];
+    int fd[3][2];
     int pid1; // for cpu usage
     int pid2; // for memory usage
+    int pid3; // for user
     int status;
     // get core cont and current progam memory usage
     if(type==0 || type==1) {
         coreCount = getCoreCount();
+        //coreCount = 10;
         currentProgMemUsage = getCurrentProgramMemoryUsage();
+        //currentProgMemUsage = 500;
     }
 
     if (sequentialFlag == 0){
@@ -370,77 +373,95 @@ int main(int argc, char **argv){
             printf("Nbr of samples: %d -- every %d sec\n", samples, tdelay);
 
             //pipe
-            for (int i = 0; i <2; i++) {
+            for (int i = 0; i <3; i++) {
                 if(pipe(fd[i]) <0){
                     // TODO: printf error
                     return 1;
                 }
             }
 
-            // forks for cpu usage
-            if((pid1 = fork()) < 0){
-                // TODO: printf error
-                return 2;
-            }else if(pid1 == 0){
-                // child process
-                close(fd[0][0]); // close read end?
-                // close other pipes
-                close(fd[1][0]);
-                close(fd[1][1]);
-                // close(fd[2][0]);
-                // close(fd[2][1]);
-                cpuUsage = getCPUUsage(&t1);
-                //printf("cpuUsage: %d\n",cpuUsage);
-                if(write(fd[0][1], &cpuUsage, sizeof(double)) < 0){
-                    // TODO: printf write error
+            if(type == 0 || type == 1) {
+                // forks for cpu usage
+                if((pid1 = fork()) < 0){
+                    // TODO: printf error
                     return 2;
+                }else if(pid1 == 0){
+                    // child process
+                    close(fd[0][0]); // close read end
+                    // close other pipes
+                    close(fd[1][0]);
+                    close(fd[1][1]);
+                    close(fd[2][0]);
+                    close(fd[2][1]);
+                    cpuUsage = getCPUUsage(&t1);
+                    //printf("cpuUsage: %d\n",cpuUsage);
+                    if(write(fd[0][1], &cpuUsage, sizeof(double)) < 0){
+                        // TODO: printf write error
+                        return 2;
+                    }
+                    close(fd[0][1]); // close write end
+                    exit(0);
                 }
-                close(fd[0][1]); // close write end
-                exit(0);
-            }
 
-            // forks for memory usage
-            if((pid2 = fork()) < 0){
-                // TODO: printf error
-                return 2;
-            }else if(pid2 == 0){
-                // child process
-                close(fd[1][0]); // close read end?
-                // close other pipes
+                // forks for memory usage
+                if((pid2 = fork()) < 0){
+                    // TODO: printf error
+                    return 2;
+                }else if(pid2 == 0){
+                    // child process
+                    close(fd[1][0]); // close read end
+                    // close other pipes
+                    close(fd[0][0]);
+                    close(fd[0][1]);
+                    close(fd[2][0]);
+                    close(fd[2][1]);
+                    memoryUsage = getMemoryUsage();
+                    if(write(fd[1][1], &memoryUsage, sizeof(Memory)) < 0){
+                        // TODO: printf write error
+                        return 2;
+                    }
+                    close(fd[1][1]); // close write end
+                    exit(0);
+                }
+            }
+            
+            // parent process
+            // close write end
+            close(fd[0][1]); 
+            close(fd[1][1]);
+            close(fd[2][1]);
+            // closed unused  read ends
+            if(type == 1){
+                close(fd[2][0]);
+            }
+            if(type == 2){
                 close(fd[0][0]);
-                close(fd[0][1]);
-                // close(fd[2][0]);
-                // close(fd[2][1]);
-                memoryUsage = getMemoryUsage();
-                if(write(fd[1][1], &memoryUsage, sizeof(Memory)) < 0){
-                    // TODO: printf write error
-                    return 2;
+                close(fd[1][0]);
+            }
+            
+            // read pipe
+            if(type == 0 || type == 1) {
+                if(read(fd[0][0], &CPU_Array[i], sizeof(double)) < 0){
+                    // TODO: printf error
+                    return 3;
                 }
-                close(fd[1][1]); // close write end
-                exit(0);
+                if(read(fd[1][0], &Memory_Array[i], sizeof(Memory)) < 0){
+                    // TODO: printf error
+                    return 3;
+                }
+                close(fd[0][0]); // close read end
+                close(fd[1][0]); // close read end
             }
 
-            // parent process 
+            if(type == 0 || type == 2) {
+                close(fd[2][0]); // close read end
+            }
+
             // wait all children
-            for (int i = 0; i <2; i++) {
+            for (int i = 0; i <3; i++) {
                 wait(&status);
             }
-            close(fd[1][1]); // close write end
-            close(fd[1][1]);
-            // close(fd[2][1]);
-            if(read(fd[0][0], &CPU_Array[i], sizeof(double)) < 0){
-                // TODO: printf error
-                return 3;
-            }
-            close(fd[0][0]); // close read end
-
-            if(read(fd[1][0], &Memory_Array[i], sizeof(Memory)) < 0){
-                // TODO: printf error
-                return 3;
-            }
-            close(fd[1][0]); // close read end
-
-
+            
 
             // main print function
             if(type==0 || type==1) {
