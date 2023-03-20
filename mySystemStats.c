@@ -180,14 +180,18 @@ CPU getCPUValues(){
         perror("Could not close /proc/stat\n");
         exit(1);
     }
-    cpuValue.used = user + nice + system + ioWait + irq + softIrq;
     cpuValue.total = user + nice + system + idle + ioWait + irq + softIrq;
+    cpuValue.used = cpuValue.total - idle;
     return cpuValue;
 }
 
 double getCPUUsage(CPU *t1){
     CPU t2 = getCPUValues();
-    return (t2.used - t1->used) / (t2.total - t1->total);
+    printf("t2.used %f\n", t2.used);
+    printf("t2.total %f\n", t2.total);
+    printf("t1->used %f\n", t1->used);
+    printf("t1->total %f\n", t1->total);
+    return (t2.used - t1->used) / (t2.total - t1->total) * 100;
 }
 
 // print all values in cpuUsageArray except the first one (base sample) (used for non-sequential output)
@@ -205,8 +209,8 @@ void printCPUUsage(double *cpuUsageArray,int index, int samples, int graphics){
                 printf("@ %.2f%%\n",cpuUsageArray[i]);
             }
         }
-    } 
-    for(int i=index+1;i<samples;i++) printf("\n");
+        for(int i=index+1;i<samples;i++) printf("\n");
+    }   
 }
 
 // get the number of cores
@@ -381,7 +385,6 @@ int main(int argc, char **argv){
             sleep(tdelay);
             printf(">>> itertion %d\n", i+1);
             if(type==0 || type==1) {
-                //memory
                 printMemoryHeader(currentProgMemUsage);
                 Memory_Array[i] = getMemoryUsage();
                 printMemoryUsage(Memory_Array, i, samples, graphicsFlag);
