@@ -161,6 +161,10 @@ void getUsers(char** users){
         }
         utmp=getutent();
     }
+    if(userCount == 0) {
+        *users = NULL;
+        return;
+    }
     *users=(char*)malloc(sizeof( char) * userCount);
     setutent();
     utmp=getutent();
@@ -362,6 +366,7 @@ int main(int argc, char **argv){
     int pid3; // for user
     int status;
     char* users;
+    int users_strlen;
     // get core cont and current progam memory usage
     if(type==0 || type==1) {
         coreCount = getCoreCount();
@@ -373,6 +378,8 @@ int main(int argc, char **argv){
         printf("\033[H"); //go home
         printf("Nbr of samples: %d -- every %d sec\n", samples, tdelay);
         for(int i=0;i<samples;i++){
+            users = NULL;
+            users_strlen = 0;
             if(type==0 || type==1) 
                 t1 = getCPUValues();
             sleep(tdelay);
@@ -432,7 +439,7 @@ int main(int argc, char **argv){
                     exit(0);
                 }
             }
-            /*
+            
             if(type == 0 || type == 2) {
                 // forks for cpu usage
                 if((pid3 = fork()) < 0){
@@ -446,19 +453,25 @@ int main(int argc, char **argv){
                     close(fd[0][1]);
                     close(fd[1][0]);
                     close(fd[1][1]);
-                    users = NULL;
                     getUsers(&users);
-                    if(write(fd[0][1], users, (strlen(users) + 1)) < 0){
+                    //printf("strlen(users) = %ld\n", strlen(users));
+                    //printf("users: %s", users);
+                    //users_strlen = strlen(users);
+                    //if(write(fd[2][1], &users_strlen, (sizeof(int))) < 0){
                         // TODO: printf write error
-                        return 2;
-                    }
-                    free(users);
+                        //return 2;
+                   // }
+                    //if(write(fd[2][1], users, (strlen(users) + 1)) < 0){
+                        // TODO: printf write error
+                        //return 2;
+                    //}
+                    //free(users);
                     close(fd[2][1]); // close write end
                     exit(0);
                 }
                 
             }
-            */
+            
             
             // parent process
             // close write end
@@ -489,12 +502,18 @@ int main(int argc, char **argv){
             }
 
             if(type == 0 || type == 2) {
-                /*
-                if(read(fd[2][0], users, (strlen(users) + 1)) < 0){
+                //if(read(fd[2][0], &users_strlen, sizeof(int)) < 0){
                     // TODO: printf error
-                    return 3;
-                }
-                */
+                    //return 3;
+                //}
+                //users_strlen = 5;
+                //printf("strlen: %d\n", users_strlen);
+                //if(read(fd[2][0], users, (users_strlen + 1)) < 0){
+                    // TODO: printf error
+                   // return 3;
+                //}
+                //printf("users: %s\n", users);
+                
                 close(fd[2][0]); // close read end
             }
 
