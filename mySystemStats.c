@@ -147,22 +147,31 @@ void printMemoryUsage(Memory *memoryArray, int index, int samples, int graphics)
 * User
 *****************/
 // print users and sessions
-int printUsers(){
+void getUsers(char** users){
     printf("---------------------------------------\n");
     printf("### Sessions/users ###\n");
     int userCount = 0;
     struct utmp *utmp;
+    char buffer[323];
     setutent();
     utmp=getutent();
     while(utmp) {
         if(utmp->ut_type == USER_PROCESS) {
-            printf(" %-9s%-11s (%s)\n", utmp->ut_user, utmp->ut_line, utmp->ut_host);
             userCount++;
         }
         utmp=getutent();
     }
+    *users=(char*)malloc(sizeof( char) * userCount);
+    setutent();
+    utmp=getutent();
+    while(utmp) {
+        if(utmp->ut_type == USER_PROCESS) {
+            sprintf(buffer," %-9s%-11s (%s)\n", utmp->ut_user, utmp->ut_line, utmp->ut_host);
+            strcat(*users,buffer);
+        }
+        utmp=getutent();
+    }
     endutent();
-    return userCount;
 }
 
 /*****************
@@ -352,12 +361,11 @@ int main(int argc, char **argv){
     int pid2; // for memory usage
     int pid3; // for user
     int status;
+    char* users;
     // get core cont and current progam memory usage
     if(type==0 || type==1) {
         coreCount = getCoreCount();
-        //coreCount = 10;
         currentProgMemUsage = getCurrentProgramMemoryUsage();
-        //currentProgMemUsage = 500;
     }
 
     if (sequentialFlag == 0){
@@ -424,6 +432,33 @@ int main(int argc, char **argv){
                     exit(0);
                 }
             }
+            /*
+            if(type == 0 || type == 2) {
+                // forks for cpu usage
+                if((pid3 = fork()) < 0){
+                    // TODO: printf error
+                    return 2;
+                }else if(pid3 == 0){
+                    // child process
+                    close(fd[2][0]); // close read end
+                    // close other pipes
+                    close(fd[0][0]);
+                    close(fd[0][1]);
+                    close(fd[1][0]);
+                    close(fd[1][1]);
+                    users = NULL;
+                    getUsers(&users);
+                    if(write(fd[0][1], users, (strlen(users) + 1)) < 0){
+                        // TODO: printf write error
+                        return 2;
+                    }
+                    free(users);
+                    close(fd[2][1]); // close write end
+                    exit(0);
+                }
+                
+            }
+            */
             
             // parent process
             // close write end
@@ -454,6 +489,12 @@ int main(int argc, char **argv){
             }
 
             if(type == 0 || type == 2) {
+                /*
+                if(read(fd[2][0], users, (strlen(users) + 1)) < 0){
+                    // TODO: printf error
+                    return 3;
+                }
+                */
                 close(fd[2][0]); // close read end
             }
 
@@ -470,7 +511,10 @@ int main(int argc, char **argv){
                 printMemoryUsage(Memory_Array, i, samples, graphicsFlag);
             }
             if(type==0 || type==2){
-                printUsers();
+                users = NULL;
+                getUsers(&users);
+                printf("%s", users);
+                free(users);
             }
             if(type==0 || type==1) {
                 printCoreCount(coreCount);
@@ -492,7 +536,7 @@ int main(int argc, char **argv){
                 printMemoryUsage(Memory_Array, i, samples, graphicsFlag);
             }
             if(type==0 || type==2){
-                printUsers();
+                //printUsers();
             }
             if(type==0 || type==1) {
                 printCoreCount(coreCount);
