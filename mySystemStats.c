@@ -159,11 +159,12 @@ void getUsers(char** users){
         }
         utmp=getutent();
     }
+    printf("userCount: %d\n", userCount);
     if(userCount == 0) {
         *users = NULL;
         return;
     }
-    *users=(char*)malloc(sizeof( char) * userCount);
+    *users=(char*)malloc(sizeof(char) * userCount * 323);
     setutent();
     utmp=getutent();
     while(utmp) {
