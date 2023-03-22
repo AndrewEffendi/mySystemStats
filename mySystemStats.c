@@ -11,6 +11,21 @@
 #include <sys/wait.h>
 #include <utmp.h>
 #include <unistd.h>
+#include <signal.h>
+
+void c_handler(int sig)
+{
+    // Ask the user to type a number
+    char c;
+    signal(sig, SIG_IGN);
+    printf(" Do you want to quit the program? [y/n]: ");
+    c = getchar();
+    if (c == 'y' || c == 'Y')
+        exit(0);
+    else
+        signal(SIGINT, c_handler);
+    getchar(); // Get new line character
+}
 
 typedef struct Memory
 {
@@ -340,6 +355,8 @@ void printSystemInfo()
  *****************/
 int main(int argc, char **argv)
 {
+    signal(SIGTSTP, SIG_IGN);
+    signal(SIGINT, c_handler);
     // type 0: system and user, type 1: system, type 2: user
     int type = 0;
     int samples = 10;
@@ -635,11 +652,11 @@ int main(int argc, char **argv)
         }
 
         // wait all children
-        if(type == 0)
+        if (type == 0)
             child_num = 3;
-        if(type == 1)
+        if (type == 1)
             child_num = 2;
-        if(type == 2)
+        if (type == 2)
             child_num = 1;
         for (int i = 0; i < child_num; i++)
         {
