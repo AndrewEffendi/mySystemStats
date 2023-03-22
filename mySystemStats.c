@@ -440,6 +440,7 @@ int main(int argc, char **argv)
     int currentProgMemUsage = 0;
     double cpuUsage = 0;
     Memory memoryUsage;
+    int child_num = 0;
     // fd for pipe
     int fd[3][2];
     int pid1; // for cpu usage
@@ -634,7 +635,13 @@ int main(int argc, char **argv)
         }
 
         // wait all children
-        for (int i = 0; i < 3; i++)
+        if(type == 0)
+            child_num = 3;
+        if(type == 1)
+            child_num = 2;
+        if(type == 2)
+            child_num = 1;
+        for (int i = 0; i < child_num; i++)
         {
             wait(&status);
         }
