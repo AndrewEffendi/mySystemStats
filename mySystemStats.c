@@ -213,6 +213,16 @@ void getUsers(char **users)
     endutent();
 }
 
+void printUsers(char *users, int users_strlen)
+{
+    printf("---------------------------------------\n");
+    printf("### Sessions/users ###\n");
+    if (users_strlen > 0)
+    {
+        printf("%s", users);
+    }
+}
+
 /*****************
  * CPU
  *****************/
@@ -466,8 +476,10 @@ int main(int argc, char **argv)
             printf("\033[1J"); // delete all above
             printf("\033[H");  // go home
             printf("Nbr of samples: %d -- every %d sec\n", samples, tdelay);
-        }else{
-            printf(">>> itertion %d\n", i+1);
+        }
+        else
+        {
+            printf(">>> itertion %d\n", i + 1);
         }
 
         // pipe
@@ -643,12 +655,7 @@ int main(int argc, char **argv)
         }
         if (type == 0 || type == 2)
         {
-            printf("---------------------------------------\n");
-            printf("### Sessions/users ###\n");
-            if (users_strlen > 0)
-            {
-                printf("%s", result);
-            }
+            printUsers(result, users_strlen);
         }
         if (type == 0 || type == 1)
         {
