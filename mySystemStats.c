@@ -192,7 +192,6 @@ void getUsers(char **users)
         }
         utmp = getutent();
     }
-    printf("userCount: %d\n", userCount);
     if (userCount == 0)
     {
         *users = NULL;
@@ -260,7 +259,6 @@ void printCPUUsage(double *cpuUsageArray, int index, int samples, int graphics)
     printf(" total cpu use = %.2f%%\n", cpuUsageArray[index]);
     if (graphics == 1)
     {
-        // for(int i=0;i<index-1;i++)printf("\n"); //print upper gap
         for (int i = 0; i <= index; i++)
         {
             printf("         |");
@@ -487,8 +485,8 @@ int main(int argc, char **argv)
         {
             if (pipe(fd[i]) < 0)
             {
-                // TODO: printf error
-                return 1;
+                perror("pipe failed");
+                exit(1);
             }
         }
 
@@ -497,8 +495,8 @@ int main(int argc, char **argv)
             // forks for cpu usage
             if ((pid1 = fork()) < 0)
             {
-                // TODO: printf error
-                return 2;
+                perror("fork failed");
+                exit(1);
             }
             else if (pid1 == 0)
             {
@@ -512,8 +510,8 @@ int main(int argc, char **argv)
                 cpuUsage = getCPUUsage(&t1);
                 if (write(fd[0][1], &cpuUsage, sizeof(double)) < 0)
                 {
-                    // TODO: printf write error
-                    return 2;
+                    fprintf(stderr, "write CPU pipe failed\n");
+                    exit(1);
                 }
                 close(fd[0][1]); // close write end
                 exit(0);
@@ -522,8 +520,8 @@ int main(int argc, char **argv)
             // forks for memory usage
             if ((pid2 = fork()) < 0)
             {
-                // TODO: printf error
-                return 2;
+                perror("fork failed");
+                exit(1);
             }
             else if (pid2 == 0)
             {
@@ -537,8 +535,8 @@ int main(int argc, char **argv)
                 memoryUsage = getMemoryUsage();
                 if (write(fd[1][1], &memoryUsage, sizeof(Memory)) < 0)
                 {
-                    // TODO: printf write error
-                    return 2;
+                    fprintf(stderr, "write Memory pipe failed\n");
+                    exit(1);
                 }
                 close(fd[1][1]); // close write end
                 exit(0);
@@ -550,8 +548,8 @@ int main(int argc, char **argv)
             // forks for cpu usage
             if ((pid3 = fork()) < 0)
             {
-                // TODO: printf error
-                return 2;
+                perror("fork failed");
+                exit(1);
             }
             else if (pid3 == 0)
             {
@@ -567,18 +565,16 @@ int main(int argc, char **argv)
                 {
                     exit(0);
                 }
-                // printf("strlen(users) = %ld\n", strlen(users));
-                // printf("users: %s", users);
                 users_strlen = strlen(users);
                 if (write(fd[2][1], &users_strlen, (sizeof(int))) < 0)
                 {
-                    // TODO: printf write error
-                    return 2;
+                    fprintf(stderr, "write Users pipe failed\n");
+                    exit(1);
                 }
                 if (write(fd[2][1], users, sizeof(char) * (strlen(users) + 1)) < 0)
                 {
-                    // TODO: printf write error
-                    return 2;
+                    fprintf(stderr, "write Users pipe failed\n");
+                    exit(1);
                 }
                 free(users);
                 close(fd[2][1]); // close write end
@@ -607,15 +603,15 @@ int main(int argc, char **argv)
         {
             if (read(fd[0][0], &CPU_Array[i], sizeof(double)) < 0)
             {
-                // TODO: printf error
-                return 3;
-            }
-            if (read(fd[1][0], &Memory_Array[i], sizeof(Memory)) < 0)
-            {
-                // TODO: printf error
-                return 3;
+                fprintf(stderr, "read CPU pipe failed\n");
+                exit(1);
             }
             close(fd[0][0]); // close read end
+            if (read(fd[1][0], &Memory_Array[i], sizeof(Memory)) < 0)
+            {
+                fprintf(stderr, "read Memory pipe failed\n");
+                exit(1);
+            }
             close(fd[1][0]); // close read end
         }
 
@@ -623,20 +619,16 @@ int main(int argc, char **argv)
         {
             if (read(fd[2][0], &users_strlen, sizeof(int)) < 0)
             {
-                // TODO: printf error
-                printf("read error user length\n");
-                return 3;
+                fprintf(stderr, "read Users pipe failed\n");
+                exit(1);
             }
-            printf("strlen: %d\n", users_strlen);
             if (users_strlen > 0)
             {
                 if (read(fd[2][0], result, sizeof(char) * (users_strlen + 1)) < 0)
                 {
-                    // TODO: printf error
-                    printf("read error users\n");
-                    return 3;
+                    fprintf(stderr, "read Users pipe failed\n");
+                    exit(1);
                 }
-                // printf("users: %s\n", users);
             }
             close(fd[2][0]); // close read end
         }
