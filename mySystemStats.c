@@ -498,7 +498,6 @@ int main(int argc, char **argv)
                 close(fd[2][0]);
                 close(fd[2][1]);
                 cpuUsage = getCPUUsage(&t1);
-                // printf("cpuUsage: %d\n",cpuUsage);
                 if (write(fd[0][1], &cpuUsage, sizeof(double)) < 0)
                 {
                     // TODO: printf write error
@@ -616,7 +615,6 @@ int main(int argc, char **argv)
                 printf("read error user length\n");
                 return 3;
             }
-            // users_strlen = 5;
             printf("strlen: %d\n", users_strlen);
             if (users_strlen > 0)
             {
@@ -641,52 +639,22 @@ int main(int argc, char **argv)
         if (type == 0 || type == 1)
         {
             printMemoryHeader(currentProgMemUsage);
-            // Memory_Array[i] = getMemoryUsage();
             printMemoryUsage(Memory_Array, i, samples, graphicsFlag);
         }
         if (type == 0 || type == 2)
         {
-            // users = NULL;
-            // getUsers(&users);
             printf("---------------------------------------\n");
             printf("### Sessions/users ###\n");
             if (users_strlen > 0)
             {
                 printf("%s", result);
             }
-            // free(users);
         }
         if (type == 0 || type == 1)
         {
             printCoreCount(coreCount);
-            // CPU_Array[i] = getCPUUsage(&t1);
             printCPUUsage(CPU_Array, i, samples, graphicsFlag);
         }
     }
-
-    /*
-    if (sequentialFlag == 1){
-        printf("Nbr of samples: %d -- every %d sec\n", samples, tdelay);
-        for(int i=0;i<samples;i++){\
-            if(type==0 || type==1)
-                t1 = getCPUValues();
-            sleep(tdelay);
-            printf(">>> itertion %d\n", i+1);
-            if(type==0 || type==1) {
-                printMemoryHeader(currentProgMemUsage);
-                Memory_Array[i] = getMemoryUsage();
-                printMemoryUsage(Memory_Array, i, samples, graphicsFlag);
-            }
-            if(type==0 || type==2){
-                //printUsers();
-            }
-            if(type==0 || type==1) {
-                printCoreCount(coreCount);
-                CPU_Array[i] = getCPUUsage(&t1);
-                printCPUUsage(CPU_Array, i, samples, graphicsFlag);
-            }
-        }
-    }
-    */
     printSystemInfo();
 }
