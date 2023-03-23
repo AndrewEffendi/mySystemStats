@@ -12,6 +12,7 @@
 #include <utmp.h>
 #include <unistd.h>
 #include <signal.h>
+#include<math.h>
 
 void c_handler(int sig)
 {
@@ -47,27 +48,9 @@ void substr(char *str, char *subStr, int start, int len)
     subStr[len] = '\0';
 }
 
-int roundNum(double number)
-{
-    return (int)(number + 0.5);
-}
-
 double round2Decimal(double number)
 {
-    return roundNum(number * 100) / 100.0;
-}
-
-int ceiling(double number)
-{
-    int temp = (int)number;
-    // for numbers already integer
-    if (number == (float)temp)
-        return temp;
-    // for negative number
-    if (number < 0)
-        return temp - 1;
-    // for poisitve number
-    return temp + 1;
+    return round(number * 100) / 100.0;
 }
 
 /*****************
@@ -143,7 +126,7 @@ void printMemoryGraphics(double currentVMemory, double previousVMemory)
     {
         difference = currentVMemory - previousVMemory;
     }
-    int barUnits = roundNum(difference * 100);
+    int barUnits = round(difference * 100);
     printf("   |");
     if (difference >= 0)
     {
@@ -279,13 +262,13 @@ void printCPUUsage(double *cpuUsageArray, int index, int samples, int graphics)
             printf("         |");
             if (cpuUsageArray[i] >= 0)
             {
-                for (int j = 0; j < ceiling(cpuUsageArray[i]); j++)
+                for (int j = 0; j < round(cpuUsageArray[i]); j++)
                     printf("#");
                 printf("* %.2f%%\n", cpuUsageArray[i]);
             }
             else
             {
-                for (int j = 0; j > ceiling(cpuUsageArray[i]); j--)
+                for (int j = 0; j > round(cpuUsageArray[i]); j--)
                     printf(":");
                 printf("@ %.2f%%\n", cpuUsageArray[i]);
             }
