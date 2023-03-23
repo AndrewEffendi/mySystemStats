@@ -13,6 +13,7 @@
  *****************/
 int main(int argc, char **argv)
 {
+    // intercept signal handlers
     signal(SIGTSTP, SIG_IGN);
     signal(SIGINT, c_handler);
     // type 0: system and user, type 1: system, type 2: user
@@ -176,20 +177,38 @@ int main(int argc, char **argv)
             }
             else if (pid1 == 0)
             {
-                // child process
-                close(fd[0][0]); // close read end
-                // close other pipes
-                close(fd[1][0]);
-                close(fd[1][1]);
-                close(fd[2][0]);
-                close(fd[2][1]);
+                // close unused end
+                if(close(fd[0][0]) == -1){
+                    perror("close failed");
+                    exit(1);
+                }
+                if(close(fd[1][0]) == -1){
+                    perror("close failed");
+                    exit(1);
+                }
+                if(close(fd[1][1]) == -1){
+                    perror("close failed");
+                    exit(1);
+                }
+                if(close(fd[2][0]) == -1){
+                    perror("close failed");
+                    exit(1);
+                }
+                if(close(fd[2][1]) == -1){
+                    perror("close failed");
+                    exit(1);
+                }
                 cpuUsage = getCPUUsage(&t1);
                 if (write(fd[0][1], &cpuUsage, sizeof(double)) < 0)
                 {
                     fprintf(stderr, "write CPU pipe failed\n");
                     exit(1);
                 }
-                close(fd[0][1]); // close write end
+                // close write end
+                if(close(fd[0][1]) == -1){
+                    perror("close failed");
+                    exit(1);
+                }
                 exit(0);
             }
 
@@ -201,27 +220,45 @@ int main(int argc, char **argv)
             }
             else if (pid2 == 0)
             {
-                // child process
-                close(fd[1][0]); // close read end
-                // close other pipes
-                close(fd[0][0]);
-                close(fd[0][1]);
-                close(fd[2][0]);
-                close(fd[2][1]);
+                // close unused end
+                if(close(fd[1][0]) == -1){
+                    perror("close failed");
+                    exit(1);
+                }
+                if(close(fd[0][0]) == -1){
+                    perror("close failed");
+                    exit(1);
+                }
+                if(close(fd[0][1]) == -1){
+                    perror("close failed");
+                    exit(1);
+                }
+                if(close(fd[2][0]) == -1){
+                    perror("close failed");
+                    exit(1);
+                }
+                if(close(fd[2][1]) == -1){
+                    perror("close failed");
+                    exit(1);
+                }
                 memoryUsage = getMemoryUsage();
                 if (write(fd[1][1], &memoryUsage, sizeof(Memory)) < 0)
                 {
                     fprintf(stderr, "write Memory pipe failed\n");
                     exit(1);
                 }
-                close(fd[1][1]); // close write end
+                // close write end
+                if(close(fd[1][1]) == -1){
+                    perror("close failed");
+                    exit(1);
+                }
                 exit(0);
             }
         }
 
         if (type == 0 || type == 2)
         {
-            // forks for cpu usage
+            // forks for users
             if ((pid3 = fork()) < 0)
             {
                 perror("fork failed");
@@ -229,13 +266,27 @@ int main(int argc, char **argv)
             }
             else if (pid3 == 0)
             {
-                // child process
-                close(fd[2][0]); // close read end
-                // close other pipes
-                close(fd[0][0]);
-                close(fd[0][1]);
-                close(fd[1][0]);
-                close(fd[1][1]);
+                // close unused end
+                if(close(fd[2][0]) == -1){
+                    perror("close failed");
+                    exit(1);
+                }
+                if(close(fd[0][0]) == -1){
+                    perror("close failed");
+                    exit(1);
+                }
+                if(close(fd[0][1]) == -1){
+                    perror("close failed");
+                    exit(1);
+                }
+                if(close(fd[1][0]) == -1){
+                    perror("close failed");
+                    exit(1);
+                }
+                if(close(fd[1][1]) == -1){
+                    perror("close failed");
+                    exit(1);
+                }
                 getUsers(&users);
                 if (users == NULL)
                 {
@@ -253,25 +304,47 @@ int main(int argc, char **argv)
                     exit(1);
                 }
                 free(users);
-                close(fd[2][1]); // close write end
+                // close write end
+                if(close(fd[2][1]) == -1){
+                    perror("close failed");
+                    exit(1);
+                }
                 exit(0);
             }
         }
 
         // parent process
         // close write end
-        close(fd[0][1]);
-        close(fd[1][1]);
-        close(fd[2][1]);
+        if(close(fd[0][1]) == -1){
+            perror("close failed");
+            exit(1);
+        }
+        if(close(fd[1][1]) == -1){
+            perror("close failed");
+            exit(1);
+        }
+        if(close(fd[2][1]) == -1){
+            perror("close failed");
+            exit(1);
+        }
         // closed unused  read ends
         if (type == 1)
         {
-            close(fd[2][0]);
+            if(close(fd[2][0]) == -1){
+                perror("close failed");
+                exit(1);
+            }
         }
         if (type == 2)
         {
-            close(fd[0][0]);
-            close(fd[1][0]);
+            if(close(fd[0][0]) == -1){
+                perror("close failed");
+                exit(1);
+            }
+            if(close(fd[1][0]) == -1){
+                perror("close failed");
+                exit(1);
+            }
         }
 
         // read pipe
@@ -282,13 +355,20 @@ int main(int argc, char **argv)
                 fprintf(stderr, "read CPU pipe failed\n");
                 exit(1);
             }
-            close(fd[0][0]); // close read end
+            if(close(fd[0][0]) == -1){
+                perror("close failed");
+                exit(1);
+            }
             if (read(fd[1][0], &Memory_Array[i], sizeof(Memory)) < 0)
             {
                 fprintf(stderr, "read Memory pipe failed\n");
                 exit(1);
             }
-            close(fd[1][0]); // close read end
+            // close read end
+            if(close(fd[1][0]) == -1){
+                perror("close failed");
+                exit(1);
+            }
         }
 
         if (type == 0 || type == 2)
@@ -306,7 +386,11 @@ int main(int argc, char **argv)
                     exit(1);
                 }
             }
-            close(fd[2][0]); // close read end
+            // close read end
+            if(close(fd[2][0]) == -1){
+                perror("close failed");
+                exit(1);
+            }
         }
 
         // wait all children
