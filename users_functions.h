@@ -3,7 +3,8 @@
 #include <string.h>
 #include <utmp.h>
 
-// print users and sessions
+// get users and sessions
 void getUsers(char **users);
 
+// print users and sessions
 void printUsers(char *users, int users_strlen);

@@ -9,9 +9,10 @@ typedef struct CPU
     double total;
 } CPU;
 
-// get the cpu usage and store it in an cpuUsageArray
+// get the cpu values (user, nice, system, idle, ioWait, irq, softIrq)
 CPU getCPUValues();
 
+// get the cpu Usage using t1 and t2
 double getCPUUsage(CPU *t1);
 
 // print all values in cpuUsageArray except the first one (base sample) (used for non-sequential output)

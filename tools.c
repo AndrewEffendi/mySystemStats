@@ -1,14 +1,15 @@
 #include "./tools.h"
 
+// create substring from str starting at index start with length len
 void substr(char *str, char *subStr, int start, int len)
 {
     strncpy(subStr, &str[start], len);
     subStr[len] = '\0';
 }
 
+// intercept SIGINT
 void c_handler(int sig)
 {
-    // Ask the user to type a number
     char c;
     signal(sig, SIG_IGN);
     printf(" Do you want to quit the program? [y/n]: ");

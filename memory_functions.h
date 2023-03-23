@@ -12,23 +12,32 @@ typedef struct Memory
     double totalVirtual;
 } Memory;
 
+// round to 2 decimal places
 double round2Decimal(double number);
-// print memory usage of current program (mySystemStats.c)
+
+// get memory usage of current program (mySystemStats.c)
 int getCurrentProgramMemoryUsage();
 
+// print memory header
 void printMemoryHeader(int memoryUsage);
 
+// get total physical memory
 double getTotalPMemory(struct sysinfo sysinfo);
 
+// get used physical memory
 double getUsedPMemory(struct sysinfo sysinfo);
 
+// get total virtual memory
 double getTotalVMemory(struct sysinfo sysinfo);
 
+// get used virtual memory
 double getUsedVMemory(struct sysinfo sysinfo);
+
 // helper funtion to print memory graphics
 void printMemoryGraphics(double currentVMemory, double previousVMemory);
 
+// get the memory usage
 Memory getMemoryUsage();
 
-// print used physical memory, total physical memory, used virtual memory, and total virtual memory
+// print the memory usage
 void printMemoryUsage(Memory *memoryArray, int index, int samples, int graphics);

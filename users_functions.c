@@ -1,6 +1,6 @@
 #include "./users_functions.h"
 
-// print users and sessions
+// get users and sessions
 void getUsers(char **users)
 {
     int userCount = 0;
@@ -36,6 +36,7 @@ void getUsers(char **users)
     endutent();
 }
 
+// print users and sessions
 void printUsers(char *users, int users_strlen)
 {
     printf("---------------------------------------\n");

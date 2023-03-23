@@ -1,7 +1,7 @@
 #include "./cpu_functions.h"
 #include "./tools.h"
 
-// get the cpu usage and store it in an cpuUsageArray
+// get the cpu values (user, nice, system, idle, ioWait, irq, softIrq)
 CPU getCPUValues()
 {
     CPU cpuValue;
@@ -23,6 +23,7 @@ CPU getCPUValues()
     return cpuValue;
 }
 
+// get the cpu Usage using t1 and t2
 double getCPUUsage(CPU *t1)
 {
     CPU t2 = getCPUValues();
