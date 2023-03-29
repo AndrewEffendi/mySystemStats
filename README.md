@@ -1,5 +1,7 @@
 # Notes #
 <ul>
+    <li>To compile the program: make</li>
+    <li>To run the program: ./mySystemStats [--flags]</li>
     <li>When not using sequential mode, make sure the whole program is visible. The cursor will only update visible areas of the screen.</li>
     <li>You can do this by maximizing the terminal window size and reducing font size of terminal window</li>
 </ul>

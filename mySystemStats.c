@@ -347,6 +347,18 @@ int main(int argc, char **argv)
             }
         }
 
+        // wait all children
+        if (type == 0)
+            child_num = 3;
+        if (type == 1)
+            child_num = 2;
+        if (type == 2)
+            child_num = 1;
+        for (int i = 0; i < child_num; i++)
+        {
+            wait(&status);
+        }
+
         // read pipe
         if (type == 0 || type == 1)
         {
@@ -391,18 +403,6 @@ int main(int argc, char **argv)
                 perror("close failed");
                 exit(1);
             }
-        }
-
-        // wait all children
-        if (type == 0)
-            child_num = 3;
-        if (type == 1)
-            child_num = 2;
-        if (type == 2)
-            child_num = 1;
-        for (int i = 0; i < child_num; i++)
-        {
-            wait(&status);
         }
 
         // main print function
