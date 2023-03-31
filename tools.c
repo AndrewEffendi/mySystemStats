@@ -1,4 +1,4 @@
-#include "./tools.h"
+#include "tools.h"
 
 // create substring from str starting at index start with length len
 void substr(char *str, char *subStr, int start, int len)

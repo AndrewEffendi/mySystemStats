@@ -1,5 +1,5 @@
-#include "./memory_functions.h"
-#include "./tools.h"
+#include "memory_functions.h"
+#include "tools.h"
 
 // round to 2 decimal places
 double round2Decimal(double number)

@@ -2,11 +2,11 @@
 #include <unistd.h>
 #include <sys/wait.h>
 
-#include "./tools.h"
-#include "./memory_functions.h"
-#include "./users_functions.h"
-#include "./cpu_functions.h"
-#include "./system_info_functions.h"
+#include "tools.h"
+#include "memory_functions.h"
+#include "users_functions.h"
+#include "cpu_functions.h"
+#include "system_info_functions.h"
 
 /*****************
  * Main Function
@@ -133,32 +133,19 @@ int main(int argc, char **argv)
         currentProgMemUsage = getCurrentProgramMemoryUsage();
     }
 
+    // Initial Header
     if (sequentialFlag == 0)
     {
         printf("\033[1J"); // delete all above
         printf("\033[H");  // go home
     }
     printf("Nbr of samples: %d -- every %d sec\n", samples, tdelay);
+
+    // main loop for each sample
     for (int i = 0; i < samples; i++)
     {
         users = NULL;
         users_strlen = 0;
-        // get t1
-        if (type == 0 || type == 1)
-            t1 = getCPUValues();
-        // sleep for tdelay seconds
-        sleep(tdelay);
-        if (sequentialFlag == 0)
-        {
-            printf("\033[1J"); // delete all above
-            printf("\033[H");  // go home
-            printf("Nbr of samples: %d -- every %d sec\n", samples, tdelay);
-        }
-        else
-        {
-            printf(">>> itertion %d\n", i + 1);
-        }
-
         // pipe
         for (int i = 0; i < 3; i++)
         {
@@ -171,7 +158,7 @@ int main(int argc, char **argv)
 
         if (type == 0 || type == 1)
         {
-            // forks for cpu usage
+            // fork for cpu usage
             if ((pid1 = fork()) < 0)
             {
                 perror("fork failed");
@@ -200,8 +187,9 @@ int main(int argc, char **argv)
                     perror("close failed");
                     exit(1);
                 }
-                cpuUsage = getCPUUsage(&t1);
-                if (write(fd[0][1], &cpuUsage, sizeof(double)) < 0)
+                
+                t1 = getCPUValues();
+                if (write(fd[0][1], &t1, sizeof(CPU)) < 0)
                 {
                     fprintf(stderr, "write CPU pipe failed\n");
                     exit(1);
@@ -214,7 +202,7 @@ int main(int argc, char **argv)
                 exit(0);
             }
 
-            // forks for memory usage
+            // fork for memory usage
             if ((pid2 = fork()) < 0)
             {
                 perror("fork failed");
@@ -260,7 +248,7 @@ int main(int argc, char **argv)
 
         if (type == 0 || type == 2)
         {
-            // forks for users
+            // fork for users
             if ((pid3 = fork()) < 0)
             {
                 perror("fork failed");
@@ -316,6 +304,21 @@ int main(int argc, char **argv)
         }
 
         // parent process
+        // sleep for tdelay seconds
+        sleep(tdelay);
+
+        // wait all children
+        if (type == 0)
+            child_num = 3;
+        if (type == 1)
+            child_num = 2;
+        if (type == 2)
+            child_num = 1;
+        for (int i = 0; i < child_num; i++)
+        {
+            wait(&status);
+        }
+
         // close write end
         if(close(fd[0][1]) == -1){
             perror("close failed");
@@ -349,22 +352,10 @@ int main(int argc, char **argv)
             }
         }
 
-        // wait all children
-        if (type == 0)
-            child_num = 3;
-        if (type == 1)
-            child_num = 2;
-        if (type == 2)
-            child_num = 1;
-        for (int i = 0; i < child_num; i++)
-        {
-            wait(&status);
-        }
-
-        // read pipe
+        // read from pipe
         if (type == 0 || type == 1)
         {
-            if (read(fd[0][0], &CPU_Array[i], sizeof(double)) < 0)
+            if (read(fd[0][0], &t1, sizeof(CPU)) < 0)
             {
                 fprintf(stderr, "read CPU pipe failed\n");
                 exit(1);
@@ -373,6 +364,7 @@ int main(int argc, char **argv)
                 perror("close failed");
                 exit(1);
             }
+            CPU_Array[i] = getCPUUsage(&t1);
             if (read(fd[1][0], &Memory_Array[i], sizeof(Memory)) < 0)
             {
                 fprintf(stderr, "read Memory pipe failed\n");
@@ -384,7 +376,6 @@ int main(int argc, char **argv)
                 exit(1);
             }
         }
-
         if (type == 0 || type == 2)
         {
             if (read(fd[2][0], &users_strlen, sizeof(int)) < 0)
@@ -407,7 +398,18 @@ int main(int argc, char **argv)
             }
         }
 
-        // main print function
+        // main print
+        if (sequentialFlag == 0)
+        {
+            printf("\033[1J"); // delete all above
+            printf("\033[H");  // go home
+            printf("Nbr of samples: %d -- every %d sec\n", samples, tdelay);
+        }
+        else
+        {
+            printf(">>> itertion %d\n", i + 1);
+        }
+
         if (type == 0 || type == 1)
         {
             printMemoryHeader(currentProgMemUsage);

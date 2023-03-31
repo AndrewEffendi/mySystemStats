@@ -1,4 +1,4 @@
-#include "./users_functions.h"
+#include "users_functions.h"
 
 // get users and sessions
 void getUsers(char **users)
