@@ -126,7 +126,7 @@ int main(int argc, char **argv)
     char *users;
     char result[2048];
     int users_strlen;
-    // get core cont and current progam memory usage
+    // get core count and current progam memory usage (header)
     if (type == 0 || type == 1)
     {
         coreCount = getCoreCount();
@@ -143,8 +143,10 @@ int main(int argc, char **argv)
     {
         users = NULL;
         users_strlen = 0;
+        // get t1
         if (type == 0 || type == 1)
             t1 = getCPUValues();
+        // sleep for tdelay seconds
         sleep(tdelay);
         if (sequentialFlag == 0)
         {

@@ -2,6 +2,8 @@
 <ul>
     <li>To compile the program: make</li>
     <li>To run the program: ./mySystemStats [--flags]</li>
+    <li>--system and --user flags are mutually exclusive, use one at a time. if you want to display both, simply don't use either flag and by default it will display both</li>
+    <li>samples and tdelay can be specified using flags (samples=N tdelay=T) [order doesn't matter] or corresponding order (N T) [order matters]. but don't use both methods in the same time</li>
     <li>When not using sequential mode, make sure the whole program is visible. The cursor will only update visible areas of the screen.</li>
     <li>You can do this by maximizing the terminal window size and reducing font size of terminal window</li>
 </ul>
