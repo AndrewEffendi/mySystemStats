@@ -166,6 +166,8 @@ int main(int argc, char **argv)
             }
             else if (pid1 == 0)
             {
+                // ignore signals to prevent triggering in multiple processes
+                signal(SIGINT, SIG_IGN);
                 // close unused end
                 if (close(fd[0][0]) == -1)
                 {
@@ -194,7 +196,9 @@ int main(int argc, char **argv)
                 }
 
                 t1 = getCPUValues();
-                if (write(fd[0][1], &t1, sizeof(CPU)) < 0)
+                sleep(tdelay);
+                cpuUsage = getCPUUsage(&t1);
+                if (write(fd[0][1], &cpuUsage, sizeof(double)) < 0)
                 {
                     fprintf(stderr, "write CPU pipe failed\n");
                     exit(1);
@@ -215,7 +219,9 @@ int main(int argc, char **argv)
                 exit(1);
             }
             else if (pid2 == 0)
-            {
+            {  
+                // ignore signals to prevent triggering in multiple processes
+                signal(SIGINT, SIG_IGN);
                 // close unused end
                 if (close(fd[1][0]) == -1)
                 {
@@ -268,6 +274,8 @@ int main(int argc, char **argv)
             }
             else if (pid3 == 0)
             {
+                // ignore signals to prevent triggering in multiple processes
+                signal(SIGINT, SIG_IGN);
                 // close unused end
                 if (close(fd[2][0]) == -1)
                 {
@@ -322,16 +330,18 @@ int main(int argc, char **argv)
         }
 
         // parent process
-        // sleep for tdelay seconds
-        sleep(tdelay);
-
         // wait all children
         if (type == 0)
             child_num = 3;
         if (type == 1)
             child_num = 2;
-        if (type == 2)
+        if (type == 2){
             child_num = 1;
+            // if type 0 or type 1, don't need to sleep again since cpu forked process already sleep for tdelay seconds
+            // but if type 2 (--user flag), need to sleep since cpu forked process not executed. (i.e. not sleep in cpu forked process)
+            sleep(tdelay);
+        }
+            
         for (int i = 0; i < child_num; i++)
         {
             wait(&status);
@@ -379,7 +389,7 @@ int main(int argc, char **argv)
         // read from pipe
         if (type == 0 || type == 1)
         {
-            if (read(fd[0][0], &t1, sizeof(CPU)) < 0)
+            if (read(fd[0][0], &CPU_Array[i], sizeof(double)) < 0)
             {
                 fprintf(stderr, "read CPU pipe failed\n");
                 exit(1);
@@ -389,7 +399,6 @@ int main(int argc, char **argv)
                 perror("close failed");
                 exit(1);
             }
-            CPU_Array[i] = getCPUUsage(&t1);
             if (read(fd[1][0], &Memory_Array[i], sizeof(Memory)) < 0)
             {
                 fprintf(stderr, "read Memory pipe failed\n");
