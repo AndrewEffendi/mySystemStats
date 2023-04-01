@@ -98,4 +98,4 @@
 
 ## Users: ##
     source: utmp.h
-    functions: printUsers();
+    functions: getUsers();
