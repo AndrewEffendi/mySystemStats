@@ -167,27 +167,32 @@ int main(int argc, char **argv)
             else if (pid1 == 0)
             {
                 // close unused end
-                if(close(fd[0][0]) == -1){
+                if (close(fd[0][0]) == -1)
+                {
                     perror("close failed");
                     exit(1);
                 }
-                if(close(fd[1][0]) == -1){
+                if (close(fd[1][0]) == -1)
+                {
                     perror("close failed");
                     exit(1);
                 }
-                if(close(fd[1][1]) == -1){
+                if (close(fd[1][1]) == -1)
+                {
                     perror("close failed");
                     exit(1);
                 }
-                if(close(fd[2][0]) == -1){
+                if (close(fd[2][0]) == -1)
+                {
                     perror("close failed");
                     exit(1);
                 }
-                if(close(fd[2][1]) == -1){
+                if (close(fd[2][1]) == -1)
+                {
                     perror("close failed");
                     exit(1);
                 }
-                
+
                 t1 = getCPUValues();
                 if (write(fd[0][1], &t1, sizeof(CPU)) < 0)
                 {
@@ -195,7 +200,8 @@ int main(int argc, char **argv)
                     exit(1);
                 }
                 // close write end
-                if(close(fd[0][1]) == -1){
+                if (close(fd[0][1]) == -1)
+                {
                     perror("close failed");
                     exit(1);
                 }
@@ -211,23 +217,28 @@ int main(int argc, char **argv)
             else if (pid2 == 0)
             {
                 // close unused end
-                if(close(fd[1][0]) == -1){
+                if (close(fd[1][0]) == -1)
+                {
                     perror("close failed");
                     exit(1);
                 }
-                if(close(fd[0][0]) == -1){
+                if (close(fd[0][0]) == -1)
+                {
                     perror("close failed");
                     exit(1);
                 }
-                if(close(fd[0][1]) == -1){
+                if (close(fd[0][1]) == -1)
+                {
                     perror("close failed");
                     exit(1);
                 }
-                if(close(fd[2][0]) == -1){
+                if (close(fd[2][0]) == -1)
+                {
                     perror("close failed");
                     exit(1);
                 }
-                if(close(fd[2][1]) == -1){
+                if (close(fd[2][1]) == -1)
+                {
                     perror("close failed");
                     exit(1);
                 }
@@ -238,7 +249,8 @@ int main(int argc, char **argv)
                     exit(1);
                 }
                 // close write end
-                if(close(fd[1][1]) == -1){
+                if (close(fd[1][1]) == -1)
+                {
                     perror("close failed");
                     exit(1);
                 }
@@ -257,23 +269,28 @@ int main(int argc, char **argv)
             else if (pid3 == 0)
             {
                 // close unused end
-                if(close(fd[2][0]) == -1){
+                if (close(fd[2][0]) == -1)
+                {
                     perror("close failed");
                     exit(1);
                 }
-                if(close(fd[0][0]) == -1){
+                if (close(fd[0][0]) == -1)
+                {
                     perror("close failed");
                     exit(1);
                 }
-                if(close(fd[0][1]) == -1){
+                if (close(fd[0][1]) == -1)
+                {
                     perror("close failed");
                     exit(1);
                 }
-                if(close(fd[1][0]) == -1){
+                if (close(fd[1][0]) == -1)
+                {
                     perror("close failed");
                     exit(1);
                 }
-                if(close(fd[1][1]) == -1){
+                if (close(fd[1][1]) == -1)
+                {
                     perror("close failed");
                     exit(1);
                 }
@@ -295,7 +312,8 @@ int main(int argc, char **argv)
                 }
                 free(users);
                 // close write end
-                if(close(fd[2][1]) == -1){
+                if (close(fd[2][1]) == -1)
+                {
                     perror("close failed");
                     exit(1);
                 }
@@ -320,33 +338,39 @@ int main(int argc, char **argv)
         }
 
         // close write end
-        if(close(fd[0][1]) == -1){
+        if (close(fd[0][1]) == -1)
+        {
             perror("close failed");
             exit(1);
         }
-        if(close(fd[1][1]) == -1){
+        if (close(fd[1][1]) == -1)
+        {
             perror("close failed");
             exit(1);
         }
-        if(close(fd[2][1]) == -1){
+        if (close(fd[2][1]) == -1)
+        {
             perror("close failed");
             exit(1);
         }
         // closed unused  read ends
         if (type == 1)
         {
-            if(close(fd[2][0]) == -1){
+            if (close(fd[2][0]) == -1)
+            {
                 perror("close failed");
                 exit(1);
             }
         }
         if (type == 2)
         {
-            if(close(fd[0][0]) == -1){
+            if (close(fd[0][0]) == -1)
+            {
                 perror("close failed");
                 exit(1);
             }
-            if(close(fd[1][0]) == -1){
+            if (close(fd[1][0]) == -1)
+            {
                 perror("close failed");
                 exit(1);
             }
@@ -360,7 +384,8 @@ int main(int argc, char **argv)
                 fprintf(stderr, "read CPU pipe failed\n");
                 exit(1);
             }
-            if(close(fd[0][0]) == -1){
+            if (close(fd[0][0]) == -1)
+            {
                 perror("close failed");
                 exit(1);
             }
@@ -371,7 +396,8 @@ int main(int argc, char **argv)
                 exit(1);
             }
             // close read end
-            if(close(fd[1][0]) == -1){
+            if (close(fd[1][0]) == -1)
+            {
                 perror("close failed");
                 exit(1);
             }
@@ -392,7 +418,8 @@ int main(int argc, char **argv)
                 }
             }
             // close read end
-            if(close(fd[2][0]) == -1){
+            if (close(fd[2][0]) == -1)
+            {
                 perror("close failed");
                 exit(1);
             }
