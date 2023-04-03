@@ -113,7 +113,6 @@ int main(int argc, char **argv)
     Memory Memory_Array[samples];
     CPU t1;
     int coreCount = 0;
-    long currentProgMemUsage = 0;
     double cpuUsage = 0;
     Memory memoryUsage;
     int child_num = 0;
@@ -126,12 +125,9 @@ int main(int argc, char **argv)
     char *users;
     char result[2048];
     int users_strlen;
-    // get core count and current progam memory usage (header)
+    // get core count since core count never changes
     if (type == 0 || type == 1)
-    {
         coreCount = getCoreCount();
-        currentProgMemUsage = getCurrentProgramMemoryUsage();
-    }
 
     // Initial Header
     if (sequentialFlag == 0)
@@ -219,7 +215,7 @@ int main(int argc, char **argv)
                 exit(1);
             }
             else if (pid2 == 0)
-            {  
+            {
                 // ignore signals to prevent triggering in multiple processes
                 signal(SIGINT, SIG_IGN);
                 // close unused end
@@ -335,13 +331,14 @@ int main(int argc, char **argv)
             child_num = 3;
         if (type == 1)
             child_num = 2;
-        if (type == 2){
+        if (type == 2)
+        {
             child_num = 1;
             // if type 0 or type 1, don't need to sleep again since cpu forked process already sleep for tdelay seconds
             // but if type 2 (--user flag), need to sleep since cpu forked process not executed. (i.e. not sleep in cpu forked process)
             sleep(tdelay);
         }
-            
+
         for (int i = 0; i < child_num; i++)
         {
             wait(&status);
@@ -448,7 +445,7 @@ int main(int argc, char **argv)
 
         if (type == 0 || type == 1)
         {
-            printMemoryHeader(currentProgMemUsage);
+            printMemoryHeader();
             printMemoryUsage(Memory_Array, i, samples, graphicsFlag);
         }
         if (type == 0 || type == 2)

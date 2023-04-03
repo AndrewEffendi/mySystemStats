@@ -20,7 +20,7 @@ double round2Decimal(double number);
 long getCurrentProgramMemoryUsage();
 
 // print memory header
-void printMemoryHeader(long memoryUsage);
+void printMemoryHeader();
 
 // get total physical memory
 double getTotalPMemory(struct sysinfo sysinfo);

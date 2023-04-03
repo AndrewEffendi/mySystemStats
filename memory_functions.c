@@ -57,9 +57,9 @@ Memory getMemoryUsage()
 }
 
 // print memory header
-void printMemoryHeader(long memoryUsage)
+void printMemoryHeader()
 {
-    printf(" memory usage: %ld kilobytes\n", memoryUsage);
+    printf(" memory usage: %ld kilobytes\n", getCurrentProgramMemoryUsage());
     printf("---------------------------------------\n");
     printf("### Memory ### (Phys.Used/Tot -- Virtual Used/Tot)\n");
 }
