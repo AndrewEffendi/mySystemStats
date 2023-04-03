@@ -3,6 +3,7 @@
 #include <string.h>
 #include <math.h>
 #include <sys/sysinfo.h>
+#include <sys/resource.h>
 
 typedef struct Memory
 {
@@ -16,10 +17,10 @@ typedef struct Memory
 double round2Decimal(double number);
 
 // get memory usage of current program (mySystemStats.c)
-int getCurrentProgramMemoryUsage();
+long getCurrentProgramMemoryUsage();
 
 // print memory header
-void printMemoryHeader(int memoryUsage);
+void printMemoryHeader(long memoryUsage);
 
 // get total physical memory
 double getTotalPMemory(struct sysinfo sysinfo);

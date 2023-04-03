@@ -113,7 +113,7 @@ int main(int argc, char **argv)
     Memory Memory_Array[samples];
     CPU t1;
     int coreCount = 0;
-    int currentProgMemUsage = 0;
+    long currentProgMemUsage = 0;
     double cpuUsage = 0;
     Memory memoryUsage;
     int child_num = 0;

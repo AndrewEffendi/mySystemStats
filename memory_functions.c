@@ -7,43 +7,12 @@ double round2Decimal(double number)
     return round(number * 100) / 100.0;
 }
 
-// print memory usage of current program (mySystemStats.c)
-int getCurrentProgramMemoryUsage()
+// get memory usage of current program (mySystemStats.c)
+long getCurrentProgramMemoryUsage()
 {
-    int memUsage = 0;
-    FILE *file = fopen("/proc/self/status", "r");
-    if (file == NULL)
-    {
-        perror("could not open /proc/self/status");
-        exit(1);
-    }
-    char temp[512];
-    char *memoryUsage = malloc(sizeof(char *));
-    while (fgets(temp, 512, file) != NULL)
-    {
-        if (strncmp(temp, "VmSize:", 7) == 0)
-        {
-            substr(temp, memoryUsage, 12, (int)strlen(temp) - 16);
-            printf(" memory usage: %s kilobytes\n", memoryUsage);
-            memUsage = atoi(memoryUsage);
-            free(memoryUsage);
-            break;
-        }
-    }
-    if (fclose(file) != 0)
-    {
-        perror("could not close /proc/self/status");
-        exit(1);
-    }
-    return memUsage;
-}
-
-// print memory header
-void printMemoryHeader(int memoryUsage)
-{
-    printf(" memory usage: %d kilobytes\n", memoryUsage);
-    printf("---------------------------------------\n");
-    printf("### Memory ### (Phys.Used/Tot -- Virtual Used/Tot)\n");
+    struct rusage usage;
+    getrusage(RUSAGE_SELF, &usage);
+    return usage.ru_maxrss;
 }
 
 // get total physical memory
@@ -74,6 +43,27 @@ double getUsedVMemory(struct sysinfo sysinfo)
     return round2Decimal(totalUsedVMemory * sysinfo.mem_unit / 1024 / 1024 / 1024); // convert bytes to GB with 2 decimal places
 }
 
+// get the memory usage
+Memory getMemoryUsage()
+{
+    struct sysinfo memoryInfo;
+    sysinfo(&memoryInfo);
+    Memory memory;
+    memory.usedPhysical = getUsedPMemory(memoryInfo);
+    memory.totalPhysical = getTotalPMemory(memoryInfo);
+    memory.usedVirtual = getUsedVMemory(memoryInfo);
+    memory.totalVirtual = getTotalVMemory(memoryInfo);
+    return memory;
+}
+
+// print memory header
+void printMemoryHeader(long memoryUsage)
+{
+    printf(" memory usage: %ld kilobytes\n", memoryUsage);
+    printf("---------------------------------------\n");
+    printf("### Memory ### (Phys.Used/Tot -- Virtual Used/Tot)\n");
+}
+
 // helper funtion to print memory graphics
 void printMemoryGraphics(double currentVMemory, double previousVMemory)
 {
@@ -97,19 +87,6 @@ void printMemoryGraphics(double currentVMemory, double previousVMemory)
         printf("@");
     }
     printf(" %.2f (%.2f)", difference, currentVMemory);
-}
-
-// get the memory usage
-Memory getMemoryUsage()
-{
-    struct sysinfo memoryInfo;
-    sysinfo(&memoryInfo);
-    Memory memory;
-    memory.usedPhysical = getUsedPMemory(memoryInfo);
-    memory.totalPhysical = getTotalPMemory(memoryInfo);
-    memory.usedVirtual = getUsedVMemory(memoryInfo);
-    memory.totalVirtual = getTotalVMemory(memoryInfo);
-    return memory;
 }
 
 // print the memory usage
