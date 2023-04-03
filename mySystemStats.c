@@ -113,13 +113,13 @@ int main(int argc, char **argv)
     Memory Memory_Array[samples];
     CPU t1;
     int coreCount = 0;
-    double cpuUsage = 0;
+    double cpuUtilization = 0;
     Memory memoryUtilization;
     int child_num = 0;
     // fd for pipe
     int fd[3][2];
-    int pid1; // for cpu usage
-    int pid2; // for memory usage
+    int pid1; // for cpu utilization
+    int pid2; // for memory utilization
     int pid3; // for user
     int status;
     char *users;
@@ -154,7 +154,7 @@ int main(int argc, char **argv)
 
         if (type == 0 || type == 1)
         {
-            // fork for cpu usage
+            // fork for cpu utilization
             if ((pid1 = fork()) < 0)
             {
                 perror("fork failed");
@@ -193,8 +193,8 @@ int main(int argc, char **argv)
 
                 t1 = getCPUValues();
                 sleep(tdelay);
-                cpuUsage = getCPUUtilization(&t1);
-                if (write(fd[0][1], &cpuUsage, sizeof(double)) < 0)
+                cpuUtilization = getCPUUtilization(&t1);
+                if (write(fd[0][1], &cpuUtilization, sizeof(double)) < 0)
                 {
                     fprintf(stderr, "write CPU pipe failed\n");
                     exit(1);
@@ -208,7 +208,7 @@ int main(int argc, char **argv)
                 exit(0);
             }
 
-            // fork for memory usage
+            // fork for memory utilization
             if ((pid2 = fork()) < 0)
             {
                 perror("fork failed");
