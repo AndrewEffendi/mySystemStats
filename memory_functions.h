@@ -38,7 +38,7 @@ double getUsedVMemory(struct sysinfo sysinfo);
 void printMemoryGraphics(double currentVMemory, double previousVMemory);
 
 // get the memory usage
-Memory getMemoryUsage();
+Memory getMemoryUtilization();
 
 // print the memory usage
-void printMemoryUsage(Memory *memoryArray, int index, int samples, int graphics);
+void printMemoryUtilization(Memory *memoryArray, int index, int samples, int graphics);

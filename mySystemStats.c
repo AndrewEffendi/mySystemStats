@@ -114,7 +114,7 @@ int main(int argc, char **argv)
     CPU t1;
     int coreCount = 0;
     double cpuUsage = 0;
-    Memory memoryUsage;
+    Memory memoryUtilization;
     int child_num = 0;
     // fd for pipe
     int fd[3][2];
@@ -162,7 +162,7 @@ int main(int argc, char **argv)
             }
             else if (pid1 == 0)
             {
-                // ignore signals to prevent triggering in multiple processes
+                // ignore signal in child to prevent triggering in multiple processes
                 signal(SIGINT, SIG_IGN);
                 // close unused end
                 if (close(fd[0][0]) == -1)
@@ -193,7 +193,7 @@ int main(int argc, char **argv)
 
                 t1 = getCPUValues();
                 sleep(tdelay);
-                cpuUsage = getCPUUsage(&t1);
+                cpuUsage = getCPUUtilization(&t1);
                 if (write(fd[0][1], &cpuUsage, sizeof(double)) < 0)
                 {
                     fprintf(stderr, "write CPU pipe failed\n");
@@ -216,7 +216,7 @@ int main(int argc, char **argv)
             }
             else if (pid2 == 0)
             {
-                // ignore signals to prevent triggering in multiple processes
+                // ignore signal in child to prevent triggering in multiple processes
                 signal(SIGINT, SIG_IGN);
                 // close unused end
                 if (close(fd[1][0]) == -1)
@@ -244,8 +244,8 @@ int main(int argc, char **argv)
                     perror("close failed");
                     exit(1);
                 }
-                memoryUsage = getMemoryUsage();
-                if (write(fd[1][1], &memoryUsage, sizeof(Memory)) < 0)
+                memoryUtilization = getMemoryUtilization();
+                if (write(fd[1][1], &memoryUtilization, sizeof(Memory)) < 0)
                 {
                     fprintf(stderr, "write Memory pipe failed\n");
                     exit(1);
@@ -270,7 +270,7 @@ int main(int argc, char **argv)
             }
             else if (pid3 == 0)
             {
-                // ignore signals to prevent triggering in multiple processes
+                // ignore signal in child to prevent triggering in multiple processes
                 signal(SIGINT, SIG_IGN);
                 // close unused end
                 if (close(fd[2][0]) == -1)
@@ -446,7 +446,7 @@ int main(int argc, char **argv)
         if (type == 0 || type == 1)
         {
             printMemoryHeader();
-            printMemoryUsage(Memory_Array, i, samples, graphicsFlag);
+            printMemoryUtilization(Memory_Array, i, samples, graphicsFlag);
         }
         if (type == 0 || type == 2)
         {
@@ -455,7 +455,7 @@ int main(int argc, char **argv)
         if (type == 0 || type == 1)
         {
             printCoreCount(coreCount);
-            printCPUUsage(CPU_Array, i, samples, graphicsFlag);
+            printCPUUtilization(CPU_Array, i, samples, graphicsFlag);
         }
     }
     printSystemInfo();

@@ -13,10 +13,10 @@ typedef struct CPU
 CPU getCPUValues();
 
 // get the cpu Usage using t1 and t2
-double getCPUUsage(CPU *t1);
+double getCPUUtilization(CPU *t1);
 
 // print all values in cpuUsageArray except the first one (base sample) (used for non-sequential output)
-void printCPUUsage(double *cpuUsageArray, int index, int samples, int graphics);
+void printCPUUtilization(double *cpuUsageArray, int index, int samples, int graphics);
 
 // get the number of cores
 int getCoreCount();

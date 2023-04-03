@@ -24,34 +24,35 @@ CPU getCPUValues()
 }
 
 // get the cpu Usage using t1 and t2
-double getCPUUsage(CPU *t1)
+double getCPUUtilization(CPU *t1)
 {
     CPU t2 = getCPUValues();
     return (t2.used - t1->used) / (t2.total - t1->total) * 100;
 }
 
-// print all values in cpuUsageArray except the first one (base sample) (used for non-sequential output)
-void printCPUUsage(double *cpuUsageArray, int index, int samples, int graphics)
+// print all cpu utilization in the CPUArray up to index
+void printCPUUtilization(double *CPUArray, int index, int samples, int graphics)
 {
-    printf(" total cpu use = %.2f%%\n", cpuUsageArray[index]);
+    printf(" total cpu use = %.2f%%\n", CPUArray[index]);
     if (graphics == 1)
     {
         for (int i = 0; i <= index; i++)
         {
             printf("         |");
-            if (cpuUsageArray[i] >= 0)
+            if (CPUArray[i] >= 0)
             {
-                for (int j = 0; j < round(cpuUsageArray[i]); j++)
+                for (int j = 0; j < round(CPUArray[i]); j++)
                     printf("#");
-                printf("* %.2f%%\n", cpuUsageArray[i]);
+                printf("* %.2f%%\n", CPUArray[i]);
             }
             else
             {
-                for (int j = 0; j > round(cpuUsageArray[i]); j--)
+                for (int j = 0; j > round(CPUArray[i]); j--)
                     printf(":");
-                printf("@ %.2f%%\n", cpuUsageArray[i]);
+                printf("@ %.2f%%\n", CPUArray[i]);
             }
         }
+        // print lower buffer
         for (int i = index + 1; i < samples; i++)
             printf("\n");
     }
