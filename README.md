@@ -56,7 +56,7 @@
 # Calculations: #
 ## Memory: ##
 ### Memory Utilization: ### 
-    source: sysinfo.h
+    source: <sysinfo.h>
     
     Functions:
     getTotalPMemory()
@@ -75,12 +75,12 @@
     1 gb = bytes / 1024 / 1024 /1024
         
 ### Current Program Memory Usage (the one on the header) ###
-    source: resource.h
+    source: <resource.h>
     Functions: getCurrentProgramMemoryUsage()
     
 ## CPU: ##
-### Memory Utilization: ### 
-    source: /proc/cpuinfo
+### CPU Utilization: ### 
+    source: /proc/stat
 
     Functions:
     getCPUValues()
@@ -104,5 +104,5 @@
 
 
 ## Users: ##
-    source: utmp.h
+    source: <utmp.h>
     Functions: getUsers();
